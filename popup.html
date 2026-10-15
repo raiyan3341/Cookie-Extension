@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <title>Universal Session & Cookie Manager Pro</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="brand-section">
+      <img src="icon.png" alt="Logo" class="brand-icon">
+      <div class="brand-info">
+        <h1>Session & Cookie Pro</h1>
+      </div>
+      <div class="site-pill" id="sitePill" title="Active Tab Domain">
+        <img src="" id="siteFavicon" class="favicon" alt="🌐" style="display:none;">
+        <span class="hostname" id="siteHostname">Loading...</span>
+        <span class="protocol-badge secure" id="siteProtocol">HTTPS</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="icon-btn" id="reloadTabBtn" title="Reload Active Tab">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+      </button>
+      <button class="icon-btn danger" id="nukeSiteBtn" title="Nuke All Site Data (Cookies + Storage)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+      </button>
+      <button class="icon-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode">
+        <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" data-tab="tab-cookies">
+      <span>🍪 Cookies</span>
+      <span class="tab-badge" id="cookieCountBadge">0</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-storage">
+      <span>💾 Storage</span>
+      <span class="tab-badge" id="storageCountBadge">0</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-snapshots">
+      <span>⚡ Profiles</span>
+      <span class="tab-badge" id="snapshotCountBadge">0</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-audit">
+      <span>🛡️ Audit</span>
+      <span class="tab-badge" id="auditScoreBadge">A+</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-hub">
+      <span>📦 Backup & Restore</span>
+    </button>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="tab-content-container">
+
+    <!-- TAB 1: COOKIES EXPLORER -->
+    <section class="tab-pane active" id="tab-cookies">
+      <div class="controls-bar">
+        <div class="search-wrapper">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="cookieSearch" class="search-input" placeholder="Search cookies by name, value, or domain...">
+        </div>
+        <select id="cookieFilter" class="filter-select">
+          <option value="all">All Cookies</option>
+          <option value="session">Session Only</option>
+          <option value="persistent">Persistent</option>
+          <option value="secure">Secure Only</option>
+          <option value="httponly">HttpOnly</option>
+          <option value="samesite-none">SameSite=None</option>
+        </select>
+        <button class="btn btn-primary" id="openAddCookieBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Cookie
+        </button>
+        <button class="btn btn-secondary btn-sm" id="copyAllCookiesHeaderBtn" title="Copy all cookies as Cookie Header format">
+          Copy Header
+        </button>
+        <button class="btn btn-danger btn-sm" id="clearCookiesBtn" title="Delete all filtered cookies">
+          Delete Filtered
+        </button>
+      </div>
+
+      <div class="items-list" id="cookiesList">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 2: STORAGE EXPLORER -->
+    <section class="tab-pane" id="tab-storage">
+      <div class="storage-subtabs">
+        <button class="btn btn-primary btn-sm" id="lsSubtabBtn">LocalStorage (<span id="lsCount">0</span>)</button>
+        <button class="btn btn-secondary btn-sm" id="ssSubtabBtn">SessionStorage (<span id="ssCount">0</span>)</button>
+      </div>
+
+      <div class="controls-bar">
+        <div class="search-wrapper">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="storageSearch" class="search-input" placeholder="Search storage keys or values...">
+        </div>
+        <button class="btn btn-primary" id="openAddStorageBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Item
+        </button>
+        <button class="btn btn-danger btn-sm" id="clearActiveStorageBtn">
+          Clear Active Storage
+        </button>
+      </div>
+
+      <div class="card" style="flex:1; overflow-y:auto;">
+        <table class="storage-table">
+          <thead>
+            <tr>
+              <th style="width: 32%;">Key</th>
+              <th>Value Preview</th>
+              <th style="width: 80px; text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="storageTableBody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: PROFILES / SNAPSHOTS -->
+    <section class="tab-pane" id="tab-snapshots">
+      <div class="card" style="padding: 12px;">
+        <div style="font-weight: 700; font-size: 13px; margin-bottom: 6px;">Create Multi-Account Session Snapshot</div>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
+          Instantly save the active login session (cookies + storage) for this site and switch between different accounts in 1 click.
+        </p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="snapshotNameInput" class="input-text" placeholder="Profile name (e.g. Work Admin, Personal, Test User)...">
+          <button class="btn btn-primary" id="saveSnapshotBtn">Save Snapshot</button>
+        </div>
+      </div>
+
+      <div class="snapshots-grid" id="snapshotsList">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 4: SECURITY & PRIVACY AUDIT -->
+    <section class="tab-pane" id="tab-audit">
+      <div class="audit-overview">
+        <div class="audit-metric-card">
+          <div class="score score-great" id="auditGrade">A+</div>
+          <div class="label">Security Score</div>
+        </div>
+        <div class="audit-metric-card">
+          <div class="score score-blue" id="auditTotalCookies">0</div>
+          <div class="label">Total Cookies</div>
+        </div>
+        <div class="audit-metric-card">
+          <div class="score score-warn" id="auditInsecureCount">0</div>
+          <div class="label">Insecure Flags</div>
+        </div>
+        <div class="audit-metric-card">
+          <div class="score score-danger" id="auditTrackerCount">0</div>
+          <div class="label">Trackers (&gt;1y)</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+        <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Security & Privacy Findings</span>
+        <button class="btn btn-success btn-sm" id="hardenSecurityBtn">
+          🛡️ One-Click Security Harden
+        </button>
+      </div>
+
+      <div class="audit-findings" id="auditFindingsList">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 5: BACKUP & RESTORE HUB -->
+    <section class="tab-pane" id="tab-hub">
+      <div class="hub-grid">
+        <!-- Export Box -->
+        <div class="hub-card">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export Site Session
+          </h3>
+          <div class="form-group">
+            <label>Export Format:</label>
+            <select id="exportFormat" class="filter-select">
+              <option value="json">Universal Session JSON (Cookies + Storage)</option>
+              <option value="netscape">Netscape / curl Cookie Format (.txt)</option>
+              <option value="cookies-json">Cookies Only JSON</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Security / Encryption (Optional Passphrase):</label>
+            <input type="password" id="exportPassphrase" class="input-text" placeholder="Leave empty for unencrypted file">
+          </div>
+          <div style="display: flex; gap: 6px; margin-top: auto;">
+            <button class="btn btn-primary" id="hubDownloadBtn" style="flex: 1;">Download Backup</button>
+            <button class="btn btn-secondary btn-sm" id="hubCopyBtn">Copy Raw</button>
+          </div>
+        </div>
+
+        <!-- Import Box -->
+        <div class="hub-card">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Restore Session
+          </h3>
+          <label class="dropzone" id="fileDropzone">
+            <input type="file" id="hubFileInput" accept=".json,.txt" style="display: none;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            <div style="font-weight: 600; font-size: 12px; margin-top: 4px;" id="selectedFileName">Choose or Drop Session File</div>
+            <p>Accepts .json or Netscape .txt</p>
+          </label>
+          <div class="form-group">
+            <label>Decryption Passphrase (If encrypted):</label>
+            <input type="password" id="importPassphrase" class="input-text" placeholder="Enter passphrase if required">
+          </div>
+          <button class="btn btn-success" id="hubRestoreBtn" style="margin-top: auto;">Restore & Reload</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Status Bar -->
+  <footer class="app-footer">
+    <div class="footer-status">
+      <span class="status-dot"></span>
+      <span id="statusBarText">Universal Session Manager Pro Ready</span>
+    </div>
+    <div style="font-size: 10px; color: var(--text-faint);">v3.0 Pro</div>
+  </footer>
+
+  <!-- MODAL: Add / Edit Cookie -->
+  <div class="modal-overlay" id="cookieModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="cookieModalTitle">Edit Cookie</h3>
+        <button class="icon-btn" id="closeCookieModalBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Cookie Name *</label>
+          <input type="text" id="modalCookieName" class="input-text" placeholder="e.g. session_id, token">
+        </div>
+        <div class="form-group">
+          <label>Value</label>
+          <textarea id="modalCookieValue" class="input-textarea" placeholder="Cookie value..."></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Domain</label>
+            <input type="text" id="modalCookieDomain" class="input-text" placeholder=".example.com">
+          </div>
+          <div class="form-group">
+            <label>Path</label>
+            <input type="text" id="modalCookiePath" class="input-text" value="/" placeholder="/">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>SameSite</label>
+            <select id="modalCookieSameSite" class="filter-select" style="width: 100%;">
+              <option value="unspecified">Unspecified / Default</option>
+              <option value="lax">Lax</option>
+              <option value="strict">Strict</option>
+              <option value="no_restriction">None (Requires Secure)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Expiration (Days from now or Session)</label>
+            <input type="number" id="modalCookieExpiryDays" class="input-text" placeholder="0 = Session, or days">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top: 4px;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="modalCookieSecure">
+            <span>Secure (HTTPS only)</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="modalCookieHttpOnly">
+            <span>HttpOnly (Block JS access)</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelCookieModalBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveCookieModalBtn">Save Cookie</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add / Edit Storage Item -->
+  <div class="modal-overlay" id="storageModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="storageModalTitle">Edit Storage Item</h3>
+        <button class="icon-btn" id="closeStorageModalBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Storage Target</label>
+          <select id="modalStorageTarget" class="filter-select">
+            <option value="local">LocalStorage</option>
+            <option value="session">SessionStorage</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Key Name *</label>
+          <input type="text" id="modalStorageKey" class="input-text" placeholder="Key name...">
+        </div>
+        <div class="form-group">
+          <label>Value (Raw string or JSON)</label>
+          <textarea id="modalStorageValue" class="input-textarea" style="min-height: 120px;" placeholder="Value..."></textarea>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="modalFormatJsonBtn" style="align-self: flex-start;">
+          ✨ Beautify JSON
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelStorageModalBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveStorageModalBtn">Save Storage Item</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
